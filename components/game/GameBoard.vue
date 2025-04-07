@@ -2,6 +2,10 @@
 	<view class="game-board">
 		<!-- 游戏头部信息 -->
 		<view class="game-header">
+			<view class="level-info" v-if="levelInfo">
+				<text class="level-label">{{ difficultyInfo ? difficultyInfo.name : '难度' }} - 第{{ currentLevelNumber }}关:</text>
+				<text class="level-name">{{ levelInfo.name }}</text>
+			</view>
 			<view class="game-info">
 				<text class="score-label">分数:</text>
 				<text class="score-value">{{ score }}</text>
@@ -77,12 +81,28 @@
 <script>
 import { generateCards } from '../../static/game/cards.js';
 import { generateLayout } from '../../static/game/layout-generator.js';
+import { getDifficultyConfig } from '../../static/game/difficulties.js';
+import { loadLevelConfig, generateLevelCards } from '../../static/game/level-manager.js';
 
 export default {
+	props: {
+		difficultyId: {
+			type: Number,
+			default: 1
+		},
+		levelNumber: {
+			type: Number,
+			default: 1
+		}
+	},
 	computed: {
 		// 计算屏幕高度，用于设置游戏区域高度为屏幕的2/3
 		screenHeight() {
 			return uni.getSystemInfoSync().windowHeight;
+		},
+		// 获取当前难度配置
+		currentDifficulty() {
+			return getDifficultyConfig(this.difficultyId);
 		}
 	},
 	data() {
@@ -92,16 +112,15 @@ export default {
 			// 游戏卡片
 			gameCards: [],
 			// 底部槽位
-			slots: Array(7).fill(null),
+			slots: [],
 			// 分数
 			score: 0,
 			// 游戏时间（秒）
 			gameTime: 0,
 			// 剩余时间（秒）
-			remainingTime: 180, // 3分钟
+			remainingTime: 180,
 			// 定时器
 			timer: null,
-			// 游戏区域高度（使用计算属性替代固定值）
 			// 卡片配置
 			cardConfig: {
 				containerWidth: uni.getSystemInfoSync().windowWidth, // 使用视口宽度
@@ -110,7 +129,13 @@ export default {
 				cardHeight: Math.min(uni.getSystemInfoSync().windowWidth, uni.getSystemInfoSync().windowHeight) * 0.2,
 				maxLayers: 5,
 				padding: Math.min(uni.getSystemInfoSync().windowWidth, uni.getSystemInfoSync().windowHeight) * 0.05 // 使用较小边的5%作为内边距
-			}
+			},
+			// 当前关卡编号
+			currentLevelNumber: 1,
+			// 难度信息
+			difficultyInfo: null,
+			// 关卡信息
+			levelInfo: null
 		};
 	},
 	mounted() {
@@ -121,15 +146,20 @@ export default {
 	},
 	methods: {
 		// 初始化游戏
-		initGame() {
+		async initGame() {
+			// 获取关卡配置
+			this.levelInfo = await loadLevelConfig(this.difficultyId, this.levelNumber);
+			console.log('关卡配置:', this.levelInfo);
+			
 			// 重置游戏状态
 			this.gameStatus = 'playing';
 			this.score = 0;
 			this.gameTime = 0;
-			this.slots = Array(7).fill(null);
+			this.remainingTime = this.levelInfo.timeLimit;
+			this.slots = Array(this.levelInfo.maxSlots).fill(null);
 			
-			// 生成卡片
-			const cards = generateCards(6, 3); // 6种类型，每种3张
+			// 生成关卡卡片
+			const cards = generateLevelCards(this.levelInfo);
 			
 			// 获取游戏区域的实际尺寸
 			let containerWidth = this.cardConfig.containerWidth;
@@ -146,12 +176,14 @@ export default {
 					const updatedConfig = {
 						...this.cardConfig,
 						containerWidth,
-						containerHeight
+						containerHeight,
+						maxLayers: this.levelInfo.maxLayers,
+						difficulty: this.levelInfo.difficulty // 添加难度系数，影响布局复杂度
 					};
 					
 					// 生成布局
 					this.gameCards = generateLayout(cards, updatedConfig);
-                    console.log('1 生成的卡片数据效果', this.gameCards);
+                    console.log('关卡' + this.levelId + '生成的卡片数据效果', this.gameCards);
 				} else {
 					// 如果无法获取到元素尺寸，使用屏幕尺寸估算
 					containerWidth = uni.getSystemInfoSync().windowWidth;
@@ -161,28 +193,16 @@ export default {
 					const updatedConfig = {
 						...this.cardConfig,
 						containerWidth,
-						containerHeight
+						containerHeight,
+						maxLayers: this.levelInfo.maxLayers,
+						difficulty: this.levelInfo.difficulty
 					};
 					
 					// 生成布局
 					this.gameCards = generateLayout(cards, updatedConfig);
-                    console.log('2 生成的卡片数据效果', this.gameCards);
-
+                    console.log('关卡' + this.levelId + '生成的卡片数据效果', this.gameCards);
 				}
 			}).exec();
-			
-			// // 启动定时器
-			// this.startTimer();
-			
-			// // 更新卡片配置
-			// const updatedConfig = {
-			// 	...this.cardConfig,
-			// 	containerWidth,
-			// 	containerHeight
-			// };
-			
-			// // 生成布局
-			// this.gameCards = generateLayout(cards, updatedConfig);
 			
 			// 启动定时器
 			this.startTimer();
@@ -367,6 +387,14 @@ export default {
 				const timeBonus = Math.max(0, 300 - this.gameTime);
 				this.score += Math.floor(timeBonus / 10) * 10;
 			}
+			
+			// 触发游戏完成事件
+			this.$emit('game-complete', {
+				status: result,
+				score: this.score,
+				time: this.gameTime,
+				levelId: this.levelId
+			});
 		},
 		
 		// 重新开始游戏
@@ -427,6 +455,26 @@ export default {
 	background-color: #ffffff;
 	color: #333;
 	box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+	flex-wrap: wrap;
+}
+
+.level-info {
+	display: flex;
+	align-items: center;
+	margin-right: 20rpx;
+	background-color: rgba(76, 175, 80, 0.1);
+	padding: 6rpx 16rpx;
+	border-radius: 10rpx;
+}
+
+.level-label {
+	font-size: 28rpx;
+	font-weight: bold;
+	margin-right: 10rpx;
+}
+
+.level-name {
+	font-size: 28rpx;
 }
 
 .game-info, .game-timer {

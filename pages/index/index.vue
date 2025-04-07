@@ -8,7 +8,7 @@
 				<text class="subtitle">消除小游戏</text>
 			</view>
 			<view class="button-area">
-				<button class="btn btn-start" @tap="startGame">开始游戏</button>
+				<button class="btn btn-start" @tap="selectLevel">选择关卡</button>
 				<button class="btn btn-about" @tap="showAbout">关于游戏</button>
 			</view>
 		</view>
@@ -50,6 +50,11 @@ export default {
 		//
 	},
 	methods: {
+		selectLevel() {
+			uni.navigateTo({
+				url: '/pages/level-select/level-select'
+			});
+		},
 		startGame() {
 			this.currentPage = 'game';
 		},

@@ -5,8 +5,19 @@
 			"style": {
 				"navigationBarTitleText": "垃圾消除游戏"
 			}
+		},
+		{
+			"path": "pages/level-select/level-select",
+			"style": {
+				"navigationBarTitleText": "关卡选择"
+			}
+		},
+		{
+			"path": "pages/game/game",
+			"style": {
+				"navigationBarTitleText": "游戏"
+			}
 		}
-		
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
