@@ -8,6 +8,7 @@ class AppUtils {
 
 	static showAds() {
 		if (!isAndroid || this.isAdsDisabled()) {
+            console.log('不显示广告');
 			return;
 		}
 

@@ -49,8 +49,10 @@
 				</view>
 			</view>
 		</view>
-		<view>
-			<button class="btn-restart" @tap="restartGame">重新开始</button>
+		<view class="control-buttons">
+			<button class="btn-undo" @tap="undoLastMove">撤销</button>
+			<button class="btn-shuffle" @tap="shuffleCards">重新排列</button>
+			<button class="btn-restart-game" @tap="restartGame">重新开始</button>
 		</view>
 
 
@@ -74,6 +76,7 @@ import { generateCards } from '../../utils/game/cards.js';
 import { generateLayout } from '../../utils/game/layout-generator.js';
 import { getDifficultyConfig } from '../../utils/game/difficulties.js';
 import { loadLevelConfig, generateLevelCards, getNextLevel } from '../../utils/game/level-manager.js';
+import AppUtils from '../../utils/AppUtils.js';
 
 export default {
 	props: {
@@ -139,7 +142,9 @@ export default {
 			// 难度信息
 			difficultyInfo: null,
 			// 关卡信息
-			levelInfo: null
+			levelInfo: null,
+			// 操作历史记录
+			operationHistory: []
 		};
 	},
 	mounted() {
@@ -263,6 +268,12 @@ export default {
 				this.endGame('lose');
 				return;
 			}
+
+			// 记录操作历史
+			this.operationHistory.push({
+				card: { ...card },
+				slotIndex: emptySlotIndex
+			});
 
 			// 将卡片放入槽位
 			this.slots[emptySlotIndex] = {
@@ -400,6 +411,21 @@ export default {
 				this.score += Math.floor(timeBonus / 10) * 10;
 			}
 
+			// 更新游戏次数并检查是否需要展示广告
+			try {
+				const GAME_COUNT_KEY = 'game_play_count';
+				let gameCount = uni.getStorageSync(GAME_COUNT_KEY) || 0;
+				gameCount++;
+				uni.setStorageSync(GAME_COUNT_KEY, gameCount);
+
+				// 每玩三次游戏展示一次广告
+				if (gameCount % 3 === 0) {
+					AppUtils.showAds();
+				}
+			} catch (e) {
+				console.error('更新游戏次数失败:', e);
+			}
+
 			// 触发游戏完成事件
 			this.$emit('game-complete', {
 				status: result,
@@ -433,30 +459,75 @@ export default {
 			this.$emit('back-home');
 		},
 
-		// 洗牌功能
+		// 撤销上一步操作
+		undoLastMove() {
+			if (this.gameStatus !== 'playing' || this.operationHistory.length === 0) {
+				return;
+			}
+
+			// 获取最后一次操作
+			const lastOperation = this.operationHistory.pop();
+			const { card, slotIndex } = lastOperation;
+
+			// 从槽位中移除卡片
+			this.slots[slotIndex] = null;
+
+			// 恢复卡片状态
+			const originalCard = this.gameCards.find(c => c.id === card.id);
+			if (originalCard) {
+				originalCard.isRemoved = false;
+			}
+
+			// 将右侧的卡片向左移动填补空位
+			for (let i = 0; i < this.slots.length - 1; i++) {
+				if (this.slots[i] === null) {
+					for (let j = i + 1; j < this.slots.length; j++) {
+						if (this.slots[j] !== null) {
+							this.slots[i] = this.slots[j];
+							this.slots[j] = null;
+							break;
+						}
+					}
+				}
+			}
+		},
+
+		// 重新排列卡片
 		shuffleCards() {
-			// // 如果游戏已结束，不执行洗牌
-			// if (this.gameStatus !== 'playing') {
-			// 	return;
-			// }
+			if (this.gameStatus !== 'playing') {
+				return;
+			}
 
-			// // 获取未移除的卡片
-			// const activeCards = this.gameCards.filter(card => !card.isRemoved);
+			// 将卡槽中的卡片移回游戏区域
+			this.slots.forEach((slot, index) => {
+				if (slot) {
+					// 找到对应的原始卡片并恢复状态
+					const originalCard = this.gameCards.find(card => card.id === slot.id);
+					if (originalCard) {
+						originalCard.isRemoved = false;
+					}
+					// 清空槽位
+					this.slots[index] = null;
+				}
+			});
 
-			// // 重新生成这些卡片的位置
-			// const updatedConfig = {
-			// 	...this.cardConfig,
-			// 	containerWidth: uni.getSystemInfoSync().windowWidth,
-			// 	containerHeight: this.screenHeight * 2/3
-			// };
+			// 获取未移除的卡片
+			const activeCards = this.gameCards.filter(card => !card.isRemoved);
 
-			// // 生成新的布局，但保持原有的层级关系
-			// const newLayout = generateLayout(activeCards, updatedConfig);
+			// 重新生成这些卡片的位置
+			const updatedConfig = {
+				...this.cardConfig,
+				containerWidth: uni.getSystemInfoSync().windowWidth,
+				containerHeight: this.screenHeight * 2/3
+			};
 
-			// // 更新卡片位置
-			// activeCards.forEach((card, index) => {
-			// 	card.position = newLayout[index].position;
-			// });
+			// 生成新的布局，但保持原有的层级关系
+			const newLayout = generateLayout(activeCards, updatedConfig);
+
+			// 更新卡片位置
+			activeCards.forEach((card, index) => {
+				card.position = newLayout[index].position;
+			});
 		},
 	}
 };
@@ -756,11 +827,33 @@ export default {
 	box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
+.btn-restart-game {
+	width: 200rpx;
+	height: 80rpx;
+	line-height: 80rpx;
+	background-color: #4CAF50;
+	color: white;
+	border-radius: 40rpx;
+	font-size: 28rpx;
+	box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
 .control-buttons .btn-restart {
 	width: 200rpx;
 	height: 80rpx;
 	line-height: 80rpx;
 	background-color: #4CAF50;
+	color: white;
+	border-radius: 40rpx;
+	font-size: 28rpx;
+	box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+.btn-undo {
+	width: 200rpx;
+	height: 80rpx;
+	line-height: 80rpx;
+	background-color: #2196F3;
 	color: white;
 	border-radius: 40rpx;
 	font-size: 28rpx;
