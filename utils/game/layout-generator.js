@@ -21,9 +21,8 @@ export function generateLayout(cards, config = {}) {
     cardGap = 4, // 卡片之间的间隔，增加立体感
     elevation = 2 // 卡片立体高度基准值，单位px
   } = config;
+  console.log('generateLayout', config);
 
-  console.log('generateLayout', cards, config);
-  
   // 复制卡片数组，避免修改原数组
   const layoutCards = [...cards];
   // 打乱卡片顺序
@@ -42,9 +41,13 @@ export function generateLayout(cards, config = {}) {
   const gridWidth = cardWidth;
   const gridHeight = cardHeight;
   
-  // 计算可用网格数量
-  const gridCols = Math.floor(usableWidth / gridWidth);
-  const gridRows = Math.floor(usableHeight / gridHeight);
+  // 计算可用网格数量，因为下一层与上一层有1/2个卡片大小的偏移，所以在结算时要减去1/2个卡片大小
+  let gridCols = Math.floor(usableWidth / (gridWidth + cardGap)) - 1;
+  let gridRows = Math.floor(usableHeight / (gridHeight + cardGap)) - 1;
+
+  const offsetTop = (usableHeight - gridRows * (gridHeight + cardGap)) / 4;
+  const offsetLeft = (usableWidth - gridCols * (gridWidth + cardGap)) / 4;
+  
   console.log('gridCols', containerWidth, cardWidth, usableWidth, gridWidth, gridCols);
   console.log('gridRows', usableHeight, gridHeight, gridRows);
   // 用于记录每一层已使用的网格点
@@ -81,8 +84,8 @@ export function generateLayout(cards, config = {}) {
     
     // 将网格坐标转换为像素坐标，并添加内边距和层偏移量
     // 添加cardGap使卡片之间有间隔，增加立体感
-    const x = gridX * (gridWidth + cardGap) + padding + layerOffsetX;
-    const y = gridY * (gridHeight + cardGap) + padding + layerOffsetY;
+    const x = gridX * (gridWidth + cardGap) + padding + layerOffsetX + offsetLeft;
+    const y = gridY * (gridHeight + cardGap) + padding + layerOffsetY + offsetTop;
 
     // console.log(`初始化卡片信息： ${layer}-${card.id} size=${gridWidth} gridX=${gridX} gridY=${gridY}, x=${x} y=${y} text=${card.icon}`);
     

@@ -12,6 +12,8 @@ export default {
   cardsPerType: 39,
   maxSlots: 9,
   timeLimit: 108,
-  maxLayers: 7,
+  maxLayers: 11,
+  gridRows: 5,
+  gridCols: 8,
   difficulty: 2
 };

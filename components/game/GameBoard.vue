@@ -30,6 +30,8 @@
 					}" :style="{
 						left: card.position.x + 'px',
 						top: card.position.y + 'px',
+						width: cardConfig.cardWidth + 'px',
+						height: cardConfig.cardHeight + 'px',
 						zIndex: card.zIndex
 					}" @tap="selectCard(card)">
 					<text class="card-icon">{{ card.icon }}</text>
@@ -172,8 +174,15 @@ export default {
 			const query = uni.createSelectorQuery().in(this);
 			query.select('.cards-container').boundingClientRect(data => {
 				if (data) {
-					containerWidth = data.width || containerWidth;
-					containerHeight = data.height || containerHeight;
+					containerWidth = Math.floor(data.width || containerWidth);
+					containerHeight = Math.floor(data.height || containerHeight);
+
+					// 验用关卡配置中的行列数，然后计算卡片的实际尺寸
+					const w = Math.floor((containerWidth - 2 * this.cardConfig.padding - (this.cardConfig.cardGap || 4) * (this.levelInfo.gridCols - 1)) / this.levelInfo.gridCols);
+					const h = Math.floor((containerHeight - 2 * this.cardConfig.padding - (this.cardConfig.cardGap || 4) * (this.levelInfo.gridRows - 1)) / this.levelInfo.gridRows);
+					const size = Math.min(w, h, this.cardConfig.cardWidth, this.cardConfig.cardHeight);
+					this.cardConfig.cardWidth = size;
+					this.cardConfig.cardHeight = size;
 
 					// 更新卡片配置
 					const updatedConfig = {
@@ -186,11 +195,11 @@ export default {
 
 					// 生成布局
 					this.gameCards = generateLayout(cards, updatedConfig);
-					console.log('关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
+					console.log('1关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
 				} else {
 					// 如果无法获取到元素尺寸，使用屏幕尺寸估算
-					containerWidth = uni.getSystemInfoSync().windowWidth;
-					containerHeight = this.screenHeight * 2 / 3;
+					containerWidth = Math.floor(uni.getSystemInfoSync().windowWidth);
+					containerHeight = Math.floor(this.screenHeight * 2 / 3);
 
 					// 更新卡片配置
 					const updatedConfig = {
@@ -203,7 +212,7 @@ export default {
 
 					// 生成布局
 					this.gameCards = generateLayout(cards, updatedConfig);
-					console.log('关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
+					console.log('2关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
 				}
 			}).exec();
 
@@ -545,7 +554,6 @@ export default {
 	box-shadow: inset 0 0 20px rgba(76, 175, 80, 0.1);
 	border-radius: 20rpx;
 	margin: 20rpx;
-	padding: 20rpx;
 }
 
 .cards-container {

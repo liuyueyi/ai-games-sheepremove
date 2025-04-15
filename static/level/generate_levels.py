@@ -6,14 +6,30 @@ def generate_level_file(difficulty, level):
     # 每个卡片出现的数量 * 3
     cards_per_type = 3 * max(1 + (level - 1) // 5, 2)  # 每5关增加一个卡片数量
     max_slots = min(7 + (level - 1) // 20, 10)  # 每20关增加一个槽位
-    max_layers = min(3 + (level - 1) // 12, 7)  # 每12关增加一层
+    
+    # 根据难度和关卡动态设置网格大小
+    base_rows = 4 + (level - 1) // 30  # 每30关增加一行
+    base_cols = 6 + (level - 1) // 25  # 每25关增加一列
+    
+    # 根据难度调整基础网格大小
+    grid_rows = min(base_rows + (difficulty - 1) // 2, 6)  # 最多6行
+    grid_cols = min(base_cols + (difficulty - 1) // 2, 8)  # 最多8列
+    
+    # 计算总卡片数量
+    total_cards = card_types * cards_per_type
+    # 计算每层最大可放置卡片数量（基于网格大小）
+    cards_per_layer = grid_rows * grid_cols  # 每层可放置的卡片数量
+    # 计算最少需要的层数，并额外增加1-2层作为游戏难度调整空间
+    min_layers = (total_cards + cards_per_layer - 1) // cards_per_layer
+    max_layers = max(min_layers + 2, 7)  # 最多7层
+    
     time_limit = max(120, 180 - (level - 1))  # 随关卡递增逐渐减少时间
     
     # 根据难度调整基础参数
     if difficulty > 1:
         card_types = min(card_types + 2, 12)
         cards_per_type = max(cards_per_type + difficulty * 3, 6)
-        max_layers = min(max_layers + 1, 7)
+        max_layers = max(max_layers + 1, 7)
         time_limit = max(90, time_limit - 20)
     
     # 生成关卡名称和描述
@@ -40,6 +56,8 @@ export default {{
   maxSlots: {max_slots},
   timeLimit: {time_limit},
   maxLayers: {max_layers},
+  gridRows: {grid_rows},
+  gridCols: {grid_cols},
   difficulty: {difficulty}
 }};
 '''
