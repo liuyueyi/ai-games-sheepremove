@@ -3,7 +3,6 @@
 		<!-- 游戏头部信息 -->
 		<view class="game-header">
 			<view class="level-info" v-if="levelInfo">
-				<text class="level-label">{{ difficultyInfo ? difficultyInfo.name : '难度' }} - 第{{ currentLevelNumber }}关:</text>
 				<text class="level-name">{{ levelInfo.name }}</text>
 			</view>
 			<view class="game-info">
@@ -14,55 +13,45 @@
 				<text class="timer-label">用时:</text>
 				<text class="timer-value">{{ formatTime(gameTime) }}</text>
 			</view>
-            <view class="btn-group">
-                <button class="btn-back" @tap="backToHome">返回</button>
-            </view>
+			<view class="btn-group">
+				<button class="btn-back" @tap="backToHome">返回</button>
+			</view>
 		</view>
-		
+
 		<!-- 游戏区域 -->
-		<view class="game-area" :style="{ height: screenHeight * 2/3 + 'px' }">
+		<view class="game-area" :style="{ height: screenHeight * 2 / 3 + 'px' }">
 			<!-- 卡片区域 -->
 			<view class="cards-container" ref="cardsContainer">
-				<view 
-					v-for="card in [...gameCards].sort((a, b) => a.zIndex - b.zIndex)" 
-					:key="card.id"
-					class="card"
-					:class="{ 
+				<view v-for="card in [...gameCards].sort((a, b) => a.zIndex - b.zIndex)" :key="card.id" class="card"
+					:class="{
 						'card-removed': card.isRemoved,
 						'card-covered': isCardCovered(card),
 						'card-available': !isCardCovered(card) && !card.isRemoved
-					}"
-					:style="{
+					}" :style="{
 						left: card.position.x + 'px',
 						top: card.position.y + 'px',
 						zIndex: card.zIndex
-					}"
-					@tap="selectCard(card)"
-				>
-					<text class="card-icon">{{  card.icon }}</text>
+					}" @tap="selectCard(card)">
+					<text class="card-icon">{{ card.icon }}</text>
 				</view>
 			</view>
 		</view>
-		
-		
-		
+
+
+
 		<!-- 底部槽位区域 -->
 		<view class="slots-area">
-			<view 
-				v-for="(slot, index) in slots" 
-				:key="index"
-				class="slot"
-			>
+			<view v-for="(slot, index) in slots" :key="index" class="slot">
 				<view v-if="slot" class="slot-card">
 					<text class="card-icon">{{ slot.icon }}</text>
 				</view>
 			</view>
 		</view>
-        <view>
-            <button class="btn-restart" @tap="restartGame">重新开始</button>
-        </view>
-        
-		
+		<view>
+			<button class="btn-restart" @tap="restartGame">重新开始</button>
+		</view>
+
+
 		<!-- 游戏结果弹窗 -->
 		<view class="game-result" v-if="gameStatus !== 'playing'">
 			<view class="result-content">
@@ -70,7 +59,7 @@
 				<text class="result-score">得分: {{ score }}</text>
 				<text class="result-time">用时: {{ formatTime(gameTime) }}</text>
 				<view class="result-buttons">
-					<button class="btn-restart" @tap="restartGame">再玩一次</button>
+					<button class="btn-restart" @tap="restartGame">{{ gameStatus === 'win' ? '下一关' : '再玩一次' }}</button>
 					<button class="btn-home" @tap="backToHome">返回首页</button>
 				</view>
 			</view>
@@ -79,10 +68,10 @@
 </template>
 
 <script>
-import { generateCards } from '../../static/game/cards.js';
-import { generateLayout } from '../../static/game/layout-generator.js';
-import { getDifficultyConfig } from '../../static/game/difficulties.js';
-import { loadLevelConfig, generateLevelCards } from '../../static/game/level-manager.js';
+import { generateCards } from '../../utils/game/cards.js';
+import { generateLayout } from '../../utils/game/layout-generator.js';
+import { getDifficultyConfig } from '../../utils/game/difficulties.js';
+import { loadLevelConfig, generateLevelCards, getNextLevel } from '../../utils/game/level-manager.js';
 
 export default {
 	props: {
@@ -103,6 +92,19 @@ export default {
 		// 获取当前难度配置
 		currentDifficulty() {
 			return getDifficultyConfig(this.difficultyId);
+		}
+	},
+	watch: {
+		difficultyId: {
+			handler() {
+				this.initGame();
+			},
+			immediate: true
+		},
+		levelNumber: {
+			handler() {
+				this.initGame();
+			},
 		}
 	},
 	data() {
@@ -150,28 +152,28 @@ export default {
 			// 获取关卡配置
 			this.levelInfo = await loadLevelConfig(this.difficultyId, this.levelNumber);
 			console.log('关卡配置:', this.levelInfo);
-			
+
 			// 重置游戏状态
 			this.gameStatus = 'playing';
 			this.score = 0;
 			this.gameTime = 0;
 			this.remainingTime = this.levelInfo.timeLimit;
 			this.slots = Array(this.levelInfo.maxSlots).fill(null);
-			
+
 			// 生成关卡卡片
 			const cards = generateLevelCards(this.levelInfo);
-			
+
 			// 获取游戏区域的实际尺寸
 			let containerWidth = this.cardConfig.containerWidth;
 			let containerHeight = this.cardConfig.containerHeight;
-			
+
 			// 使用uni-app的选择器API获取元素尺寸
 			const query = uni.createSelectorQuery().in(this);
 			query.select('.cards-container').boundingClientRect(data => {
 				if (data) {
 					containerWidth = data.width || containerWidth;
 					containerHeight = data.height || containerHeight;
-					
+
 					// 更新卡片配置
 					const updatedConfig = {
 						...this.cardConfig,
@@ -180,15 +182,15 @@ export default {
 						maxLayers: this.levelInfo.maxLayers,
 						difficulty: this.levelInfo.difficulty // 添加难度系数，影响布局复杂度
 					};
-					
+
 					// 生成布局
 					this.gameCards = generateLayout(cards, updatedConfig);
-                    console.log('关卡' + this.levelId + '生成的卡片数据效果', this.gameCards);
+					console.log('关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
 				} else {
 					// 如果无法获取到元素尺寸，使用屏幕尺寸估算
 					containerWidth = uni.getSystemInfoSync().windowWidth;
-					containerHeight = this.screenHeight * 2/3;
-					
+					containerHeight = this.screenHeight * 2 / 3;
+
 					// 更新卡片配置
 					const updatedConfig = {
 						...this.cardConfig,
@@ -197,17 +199,17 @@ export default {
 						maxLayers: this.levelInfo.maxLayers,
 						difficulty: this.levelInfo.difficulty
 					};
-					
+
 					// 生成布局
 					this.gameCards = generateLayout(cards, updatedConfig);
-                    console.log('关卡' + this.levelId + '生成的卡片数据效果', this.gameCards);
+					console.log('关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
 				}
 			}).exec();
-			
+
 			// 启动定时器
 			this.startTimer();
 		},
-		
+
 		// 启动定时器
 		startTimer() {
 			this.clearTimer();
@@ -216,7 +218,7 @@ export default {
 				// 不再使用倒计时结束游戏，而是检查槽位是否已满
 			}, 1000);
 		},
-		
+
 		// 清除定时器
 		clearTimer() {
 			if (this.timer) {
@@ -224,26 +226,26 @@ export default {
 				this.timer = null;
 			}
 		},
-		
+
 		// 格式化时间
 		formatTime(seconds) {
 			const mins = Math.floor(seconds / 60);
 			const secs = seconds % 60;
 			return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 		},
-		
+
 		// 选择卡片
 		selectCard(card) {
 			// 如果游戏已结束或卡片已被移除，则不处理
 			if (this.gameStatus !== 'playing' || card.isRemoved) {
 				return;
 			}
-			
+
 			// 检查卡片是否被其他卡片覆盖
 			if (this.isCardCovered(card)) {
 				return;
 			}
-			
+
 			// 查找空槽位
 			const emptySlotIndex = this.slots.findIndex(slot => slot === null);
 			if (emptySlotIndex === -1) {
@@ -251,7 +253,7 @@ export default {
 				this.endGame('lose');
 				return;
 			}
-			
+
 			// 将卡片放入槽位
 			this.slots[emptySlotIndex] = {
 				id: card.id,
@@ -259,41 +261,41 @@ export default {
 				icon: card.icon,
 				name: card.name
 			};
-			
+
 			// 标记卡片为已移除
 			card.isRemoved = true;
-			
+
 			// 检查是否可以消除
 			this.checkElimination();
-			
+
 			// 检查是否获胜
 			this.checkWinCondition();
 
-            // 检查游戏是否结束
-            // 如果槽位已经填满，则表示游戏结束
-            if (this.slots.every(slot => slot !== null)) {
-                this.endGame('lose');
-            }
+			// 检查游戏是否结束
+			// 如果槽位已经填满，则表示游戏结束
+			if (this.slots.every(slot => slot !== null)) {
+				this.endGame('lose');
+			}
 		},
-		
+
 		// 检查卡片是否被其他卡片覆盖
 		isCardCovered(card) {
 			// 获取当前卡片的位置和尺寸
 			const { x, y } = card.position;
 			const { cardWidth, cardHeight } = this.cardConfig;
-			
+
 			// 检查是否有更高层级的卡片覆盖了当前卡片
 			return this.gameCards.some(otherCard => {
 				// 跳过自身和已移除的卡片
 				if (otherCard.id === card.id || otherCard.isRemoved) {
 					return false;
 				}
-				
+
 				// 只检查更高层级的卡片
 				if (otherCard.zIndex <= card.zIndex) {
 					return false;
 				}
-				
+
 				// 检查是否有重叠（交叉）
 				const { x: otherX, y: otherY } = otherCard.position;
 				const hasOverlap = (
@@ -302,12 +304,12 @@ export default {
 					otherY < y + cardHeight &&
 					otherY + cardHeight > y
 				);
-				
+
 				// 如果有重叠，则认为卡片被覆盖
 				return hasOverlap;
 			});
 		},
-		
+
 		// 检查是否可以消除
 		checkElimination() {
 			// 统计每种类型的卡片数量
@@ -317,7 +319,7 @@ export default {
 					typeCounts[slot.typeId] = (typeCounts[slot.typeId] || 0) + 1;
 				}
 			});
-			
+
 			// 检查是否有三张相同类型的卡片
 			let eliminated = false;
 			Object.entries(typeCounts).forEach(([typeId, count]) => {
@@ -327,13 +329,13 @@ export default {
 					eliminated = true;
 				}
 			});
-			
+
 			// 如果有消除，增加分数
 			if (eliminated) {
 				this.score += 30;
 			}
 		},
-		
+
 		// 消除卡片
 		eliminateCards(typeId) {
 			// 找出所有相同类型的卡片索引
@@ -343,12 +345,12 @@ export default {
 					indices.push(index);
 				}
 			});
-			
+
 			// 从槽位中移除卡片（最多移除3张）
 			indices.slice(0, 3).forEach(index => {
 				this.slots[index] = null;
 			});
-			
+
 			// 将右侧的卡片向左移动填补空位
 			for (let i = 0; i < this.slots.length - 1; i++) {
 				if (this.slots[i] === null) {
@@ -364,30 +366,30 @@ export default {
 				}
 			}
 		},
-		
+
 		// 检查是否获胜
 		checkWinCondition() {
 			// 检查是否所有卡片都已移除
 			const allCardsRemoved = this.gameCards.every(card => card.isRemoved);
-			
+
 			// 如果所有卡片都已移除，游戏胜利
 			if (allCardsRemoved) {
 				this.endGame('win');
 			}
 		},
-		
+
 		// 结束游戏
 		endGame(result) {
 			this.gameStatus = result;
 			this.clearTimer();
-			
+
 			// 如果胜利，增加额外分数
 			if (result === 'win') {
 				// 根据游戏时间增加额外分数（游戏时间越短，奖励越多）
 				const timeBonus = Math.max(0, 300 - this.gameTime);
 				this.score += Math.floor(timeBonus / 10) * 10;
 			}
-			
+
 			// 触发游戏完成事件
 			this.$emit('game-complete', {
 				status: result,
@@ -396,38 +398,51 @@ export default {
 				levelId: this.levelId
 			});
 		},
-		
-		// 重新开始游戏
+
+		// 重新开始游戏或进入下一关
 		restartGame() {
-			this.initGame();
+			if (this.gameStatus === 'win') {
+				// 触发关卡完成事件，由父组件处理难度和关卡更新
+				this.$emit('level-complete', {
+					status: 'win',
+					score: this.score,
+					time: this.gameTime,
+					levelId: this.levelId
+				});
+				// 初始化下一关
+				// this.initGame();
+			} else {
+				// 重新开始当前关卡
+				this.initGame();
+			}
 		},
-		
+
 		// 返回首页
 		backToHome() {
 			this.clearTimer();
 			this.$emit('back-home');
 		},
-		
+
 		// 洗牌功能
 		shuffleCards() {
 			// // 如果游戏已结束，不执行洗牌
 			// if (this.gameStatus !== 'playing') {
 			// 	return;
 			// }
-			
+
 			// // 获取未移除的卡片
 			// const activeCards = this.gameCards.filter(card => !card.isRemoved);
-			
+
 			// // 重新生成这些卡片的位置
 			// const updatedConfig = {
 			// 	...this.cardConfig,
 			// 	containerWidth: uni.getSystemInfoSync().windowWidth,
 			// 	containerHeight: this.screenHeight * 2/3
 			// };
-			
+
 			// // 生成新的布局，但保持原有的层级关系
 			// const newLayout = generateLayout(activeCards, updatedConfig);
-			
+
 			// // 更新卡片位置
 			// activeCards.forEach((card, index) => {
 			// 	card.position = newLayout[index].position;
@@ -477,17 +492,20 @@ export default {
 	font-size: 28rpx;
 }
 
-.game-info, .game-timer {
+.game-info,
+.game-timer {
 	display: flex;
 	align-items: center;
 }
 
-.score-label, .timer-label {
+.score-label,
+.timer-label {
 	font-size: 28rpx;
 	margin-right: 10rpx;
 }
 
-.score-value, .timer-value {
+.score-value,
+.timer-value {
 	font-size: 32rpx;
 	font-weight: bold;
 }
@@ -503,10 +521,11 @@ export default {
 	box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 	transition: all 0.3s ease;
 }
+
 .btn-restart {
-    font-size: 34rpx;
+	font-size: 34rpx;
 	padding: 0 20rpx;
-    margin-top: 20rpx;
+	margin-top: 20rpx;
 	line-height: 80rpx;
 	background-color: #4CAF50;
 	color: white;
@@ -617,6 +636,7 @@ export default {
 		transform: translateY(-20rpx);
 		opacity: 0;
 	}
+
 	100% {
 		transform: translateY(0);
 		opacity: 1;
@@ -656,7 +676,8 @@ export default {
 	margin-bottom: 30rpx;
 }
 
-.result-score, .result-time {
+.result-score,
+.result-time {
 	font-size: 32rpx;
 	color: #666;
 	margin-bottom: 20rpx;
@@ -668,6 +689,7 @@ export default {
 		transform: scale(0.8);
 		opacity: 0;
 	}
+
 	100% {
 		transform: scale(1);
 		opacity: 1;
@@ -683,24 +705,25 @@ export default {
 	background-color: #2196F3;
 	color: white;
 }
+
 .result-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20rpx;
-    margin-top: 30rpx;
-    width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 20rpx;
+	margin-top: 30rpx;
+	width: 100%;
 }
 
 .result-buttons button {
-    flex: 1;
-    max-width: 200rpx;
-    height: 80rpx;
-    line-height: 80rpx;
-    font-size: 28rpx;
-    border-radius: 40rpx;
-    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+	flex: 1;
+	max-width: 200rpx;
+	height: 80rpx;
+	line-height: 80rpx;
+	font-size: 28rpx;
+	border-radius: 40rpx;
+	box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+	transition: all 0.3s ease;
 }
 
 .control-buttons {

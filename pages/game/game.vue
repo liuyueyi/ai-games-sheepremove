@@ -50,16 +50,16 @@ export default {
 			// 保存游戏结果
 			this.saveGameResult(result);
 			
-			// 显示结果提示
-			setTimeout(() => {
-				if (result.status === 'win') {
-					uni.showToast({
-						title: '恭喜通关！',
-						icon: 'success',
-						duration: 2000
-					});
-				}
-			}, 500);
+			// // 显示结果提示
+			// setTimeout(() => {
+			// 	if (result.status === 'win') {
+			// 		uni.showToast({
+			// 			title: '恭喜通关！',
+			// 			icon: 'success',
+			// 			duration: 2000
+			// 		});
+			// 	}
+			// }, 500);
 		},
 		
 		// 保存游戏结果
@@ -71,9 +71,10 @@ export default {
 		onLevelComplete(result) {
 			// 保存当前关卡的游戏结果
 			this.saveGameResult(result);
+			console.log('onLevelComplete', result);
 			
 			// 导入关卡管理器
-			import('../../static/game/level-manager.js').then(module => {
+			import('../../utils/game/level-manager.js').then(module => {
 				const { getNextLevel } = module;
 				
 				// 获取下一关信息
@@ -85,12 +86,12 @@ export default {
 					this.difficultyId = nextLevel.difficultyId;
 					this.levelNumber = nextLevel.levelNumber;
 					
-					// 显示下一关提示
-					uni.showToast({
-						title: `进入${nextLevel.difficultyId === this.difficultyId ? '下一关' : '下一难度'}！`,
-						icon: 'success',
-						duration: 1500
-					});
+					// // 显示下一关提示
+					// uni.showToast({
+					// 	title: `进入${nextLevel.difficultyId === this.difficultyId ? '下一关' : '下一难度'}！`,
+					// 	icon: 'success',
+					// 	duration: 1500
+					// });
 				} else {
 					// 如果没有下一关，显示通关提示
 					uni.showToast({

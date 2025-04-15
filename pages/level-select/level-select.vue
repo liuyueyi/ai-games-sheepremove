@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { LEVELS, getUnlockedLevels } from '../../static/game/levels.js';
+import { LEVELS, getUnlockedLevels } from '../../utils/game/levels.js';
 
 export default {
 	data() {
