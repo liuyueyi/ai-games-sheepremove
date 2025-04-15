@@ -10,7 +10,7 @@ export default {
   description: '挑战第25关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 6), // 使用前6种类型的卡片
   cardsPerType: 15,
-  maxSlots: 7,
+  maxSlots: 8,
   timeLimit: 156,
   maxLayers: 5,
   difficulty: 1

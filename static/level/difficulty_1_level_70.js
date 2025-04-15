@@ -10,7 +10,7 @@ export default {
   description: '挑战第70关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 10), // 使用前10种类型的卡片
   cardsPerType: 42,
-  maxSlots: 9,
+  maxSlots: 10,
   timeLimit: 120,
   maxLayers: 7,
   difficulty: 1

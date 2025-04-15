@@ -10,7 +10,7 @@ export default {
   description: '挑战第36关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 9), // 使用前9种类型的卡片
   cardsPerType: 36,
-  maxSlots: 7,
+  maxSlots: 8,
   timeLimit: 125,
   maxLayers: 6,
   difficulty: 4

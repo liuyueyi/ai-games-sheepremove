@@ -10,7 +10,7 @@ export default {
   description: '挑战第11关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 7), // 使用前7种类型的卡片
   cardsPerType: 21,
-  maxSlots: 6,
+  maxSlots: 7,
   timeLimit: 150,
   maxLayers: 4,
   difficulty: 4

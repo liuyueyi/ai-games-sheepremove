@@ -10,7 +10,7 @@ export default {
   description: '挑战第3关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 6), // 使用前6种类型的卡片
   cardsPerType: 12,
-  maxSlots: 6,
+  maxSlots: 7,
   timeLimit: 158,
   maxLayers: 4,
   difficulty: 2

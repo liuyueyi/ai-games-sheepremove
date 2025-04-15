@@ -10,7 +10,7 @@ export default {
   description: '挑战第14关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 5), // 使用前5种类型的卡片
   cardsPerType: 9,
-  maxSlots: 6,
+  maxSlots: 7,
   timeLimit: 167,
   maxLayers: 4,
   difficulty: 1

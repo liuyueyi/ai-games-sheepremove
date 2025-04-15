@@ -5,7 +5,7 @@ def generate_level_file(difficulty, level):
     card_types = min(4 + (level - 1) // 10, 12)  # 每10关增加一种卡片类型
     # 每个卡片出现的数量 * 3
     cards_per_type = 3 * max(1 + (level - 1) // 5, 2)  # 每5关增加一个卡片数量
-    max_slots = min(6 + (level - 1) // 20, 10)  # 每20关增加一个槽位
+    max_slots = min(7 + (level - 1) // 20, 10)  # 每20关增加一个槽位
     max_layers = min(3 + (level - 1) // 12, 7)  # 每12关增加一层
     time_limit = max(120, 180 - (level - 1))  # 随关卡递增逐渐减少时间
     
