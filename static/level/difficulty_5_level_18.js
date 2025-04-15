@@ -9,7 +9,7 @@ export default {
   name: '大师级-第18关',
   description: '挑战第18关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 7), // 使用前7种类型的卡片
-  cardsPerType: 5,
+  cardsPerType: 27,
   maxSlots: 6,
   timeLimit: 143,
   maxLayers: 5,

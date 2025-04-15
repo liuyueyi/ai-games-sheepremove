@@ -9,7 +9,7 @@ export default {
   name: '大师级-第53关',
   description: '挑战第53关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 11), // 使用前11种类型的卡片
-  cardsPerType: 6,
+  cardsPerType: 48,
   maxSlots: 8,
   timeLimit: 108,
   maxLayers: 7,

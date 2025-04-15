@@ -9,7 +9,7 @@ export default {
   name: '中级进阶-第50关',
   description: '挑战第50关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 10), // 使用前10种类型的卡片
-  cardsPerType: 6,
+  cardsPerType: 39,
   maxSlots: 8,
   timeLimit: 111,
   maxLayers: 7,

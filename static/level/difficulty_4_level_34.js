@@ -9,7 +9,7 @@ export default {
   name: '高级挑战-第34关',
   description: '挑战第34关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 9), // 使用前9种类型的卡片
-  cardsPerType: 6,
+  cardsPerType: 33,
   maxSlots: 7,
   timeLimit: 127,
   maxLayers: 6,

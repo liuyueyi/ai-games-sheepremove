@@ -9,7 +9,7 @@ export default {
   name: '新手入门-第21关',
   description: '挑战第21关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 6), // 使用前6种类型的卡片
-  cardsPerType: 4,
+  cardsPerType: 15,
   maxSlots: 7,
   timeLimit: 160,
   maxLayers: 4,

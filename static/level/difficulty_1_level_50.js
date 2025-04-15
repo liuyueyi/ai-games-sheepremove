@@ -9,7 +9,7 @@ export default {
   name: '新手入门-第50关',
   description: '挑战第50关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 8), // 使用前8种类型的卡片
-  cardsPerType: 6,
+  cardsPerType: 30,
   maxSlots: 8,
   timeLimit: 131,
   maxLayers: 7,

@@ -9,7 +9,7 @@ export default {
   name: '初级挑战-第59关',
   description: '挑战第59关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 11), // 使用前11种类型的卡片
-  cardsPerType: 6,
+  cardsPerType: 42,
   maxSlots: 8,
   timeLimit: 102,
   maxLayers: 7,

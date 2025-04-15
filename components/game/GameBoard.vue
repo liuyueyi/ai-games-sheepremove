@@ -151,7 +151,6 @@ export default {
 		async initGame() {
 			// 获取关卡配置
 			this.levelInfo = await loadLevelConfig(this.difficultyId, this.levelNumber);
-			console.log('关卡配置:', this.levelInfo);
 
 			// 重置游戏状态
 			this.gameStatus = 'playing';
@@ -162,6 +161,8 @@ export default {
 
 			// 生成关卡卡片
 			const cards = generateLevelCards(this.levelInfo);
+			console.log('关卡配置:', this.levelInfo, cards);
+
 
 			// 获取游戏区域的实际尺寸
 			let containerWidth = this.cardConfig.containerWidth;

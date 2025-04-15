@@ -9,7 +9,7 @@ export default {
   name: '新手入门-第27关',
   description: '挑战第27关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 6), // 使用前6种类型的卡片
-  cardsPerType: 4,
+  cardsPerType: 18,
   maxSlots: 7,
   timeLimit: 154,
   maxLayers: 5,

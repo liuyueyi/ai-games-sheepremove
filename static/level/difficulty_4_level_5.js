@@ -9,7 +9,7 @@ export default {
   name: '高级挑战-第5关',
   description: '挑战第5关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 6), // 使用前6种类型的卡片
-  cardsPerType: 4,
+  cardsPerType: 18,
   maxSlots: 6,
   timeLimit: 156,
   maxLayers: 4,

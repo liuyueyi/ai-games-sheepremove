@@ -9,7 +9,7 @@ export default {
   name: '大师级-第37关',
   description: '挑战第37关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 9), // 使用前9种类型的卡片
-  cardsPerType: 6,
+  cardsPerType: 39,
   maxSlots: 7,
   timeLimit: 124,
   maxLayers: 7,

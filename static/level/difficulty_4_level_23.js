@@ -9,7 +9,7 @@ export default {
   name: '高级挑战-第23关',
   description: '挑战第23关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 8), // 使用前8种类型的卡片
-  cardsPerType: 5,
+  cardsPerType: 27,
   maxSlots: 7,
   timeLimit: 138,
   maxLayers: 5,

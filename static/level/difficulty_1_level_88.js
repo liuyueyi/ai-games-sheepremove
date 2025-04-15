@@ -9,7 +9,7 @@ export default {
   name: '新手入门-第88关',
   description: '挑战第88关，考验你的技巧',
   cardTypes: CARD_TYPES.slice(0, 12), // 使用前12种类型的卡片
-  cardsPerType: 6,
+  cardsPerType: 54,
   maxSlots: 10,
   timeLimit: 120,
   maxLayers: 7,
