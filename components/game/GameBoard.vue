@@ -50,9 +50,19 @@
 			</view>
 		</view>
 		<view class="control-buttons">
-			<button class="btn-undo" @tap="undoLastMove">撤销</button>
-			<button class="btn-shuffle" @tap="shuffleCards">重新排列</button>
-			<button class="btn-restart-game" @tap="restartGame">重新开始</button>
+			<view class="btn-undo-wrapper" @click="undoLastMove">
+				<image class="btn-undo" src="/static/icons/back.svg"></image>
+				<!-- #ifdef APP-PLUS -->
+				<text class="ads-tag">ADS</text>
+				<!-- #endif -->
+			</view>
+			<view class="btn-shuffle-wrapper" @click="shuffleCards">
+				<image class="btn-shuffle" src="/static/icons/refresh.svg"></image>
+				<!-- #ifdef APP-PLUS -->
+				<text class="ads-tag">ADS</text>
+				<!-- #endif -->
+			</view>
+			<image class="btn-restart-game" src="/static/icons/restart.svg" @click="restartGame"></image>
 		</view>
 
 
@@ -465,31 +475,42 @@ export default {
 				return;
 			}
 
-			// 获取最后一次操作
-			const lastOperation = this.operationHistory.pop();
-			const { card, slotIndex } = lastOperation;
+			AppUtils.showRewards(() => {
+				// 获取最后一次操作
+				const lastOperation = this.operationHistory.pop();
+				const { card, slotIndex } = lastOperation;
 
-			// 从槽位中移除卡片
-			this.slots[slotIndex] = null;
+				// 从槽位中移除卡片
+				this.slots[slotIndex] = null;
 
-			// 恢复卡片状态
-			const originalCard = this.gameCards.find(c => c.id === card.id);
-			if (originalCard) {
-				originalCard.isRemoved = false;
-			}
+				// 恢复卡片状态
+				const originalCard = this.gameCards.find(c => c.id === card.id);
+				if (originalCard) {
+					originalCard.isRemoved = false;
+				}
 
-			// 将右侧的卡片向左移动填补空位
-			for (let i = 0; i < this.slots.length - 1; i++) {
-				if (this.slots[i] === null) {
-					for (let j = i + 1; j < this.slots.length; j++) {
-						if (this.slots[j] !== null) {
-							this.slots[i] = this.slots[j];
-							this.slots[j] = null;
-							break;
+				// 将右侧的卡片向左移动填补空位
+				for (let i = 0; i < this.slots.length - 1; i++) {
+					if (this.slots[i] === null) {
+						for (let j = i + 1; j < this.slots.length; j++) {
+							if (this.slots[j] !== null) {
+								this.slots[i] = this.slots[j];
+								this.slots[j] = null;
+								break;
+							}
 						}
 					}
 				}
-			}
+				uni.showToast({
+					title: '回退成功',
+					icon: 'none'
+				});
+			}, () => {
+				uni.showToast({
+					title: '观看广告之后可以回退一步哦~',
+					icon: 'none'
+				});
+			})
 		},
 
 		// 重新排列卡片
@@ -498,36 +519,48 @@ export default {
 				return;
 			}
 
-			// 将卡槽中的卡片移回游戏区域
-			this.slots.forEach((slot, index) => {
-				if (slot) {
-					// 找到对应的原始卡片并恢复状态
-					const originalCard = this.gameCards.find(card => card.id === slot.id);
-					if (originalCard) {
-						originalCard.isRemoved = false;
+			AppUtils.showRewards(() => {
+				// 将卡槽中的卡片移回游戏区域
+				this.slots.forEach((slot, index) => {
+					if (slot) {
+						// 找到对应的原始卡片并恢复状态
+						const originalCard = this.gameCards.find(card => card.id === slot.id);
+						if (originalCard) {
+							originalCard.isRemoved = false;
+						}
+						// 清空槽位
+						this.slots[index] = null;
 					}
-					// 清空槽位
-					this.slots[index] = null;
-				}
-			});
+				});
 
-			// 获取未移除的卡片
-			const activeCards = this.gameCards.filter(card => !card.isRemoved);
+				// 获取未移除的卡片
+				const activeCards = this.gameCards.filter(card => !card.isRemoved);
 
-			// 重新生成这些卡片的位置
-			const updatedConfig = {
-				...this.cardConfig,
-				containerWidth: uni.getSystemInfoSync().windowWidth,
-				containerHeight: this.screenHeight * 2/3
-			};
+				// 重新生成这些卡片的位置
+				const updatedConfig = {
+					...this.cardConfig,
+					containerWidth: uni.getSystemInfoSync().windowWidth,
+					containerHeight: this.screenHeight * 2 / 3
+				};
 
-			// 生成新的布局，但保持原有的层级关系
-			const newLayout = generateLayout(activeCards, updatedConfig);
+				// 生成新的布局，但保持原有的层级关系
+				const newLayout = generateLayout(activeCards, updatedConfig);
 
-			// 更新卡片位置
-			activeCards.forEach((card, index) => {
-				card.position = newLayout[index].position;
-			});
+				// 更新卡片位置
+				activeCards.forEach((card, index) => {
+					card.position = newLayout[index].position;
+				});
+
+				uni.showToast({
+					title: '重排完成',
+					icon: 'none'
+				});
+			}, () => {
+				uni.showToast({
+					title: '观看广告之后可以重新洗牌哦~',
+					icon: 'none'
+				});
+			})
 		},
 	}
 };
@@ -818,7 +851,8 @@ export default {
 
 .btn-shuffle {
 	width: 200rpx;
-	height: 80rpx;
+	height: 60rpx;
+	padding: 10rpx 0;
 	line-height: 80rpx;
 	background-color: #FF9800;
 	color: white;
@@ -829,7 +863,8 @@ export default {
 
 .btn-restart-game {
 	width: 200rpx;
-	height: 80rpx;
+	height: 60rpx;
+	padding: 10rpx 0;
 	line-height: 80rpx;
 	background-color: #4CAF50;
 	color: white;
@@ -849,14 +884,38 @@ export default {
 	box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
+.btn-undo-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
 .btn-undo {
 	width: 200rpx;
-	height: 80rpx;
+	height: 60rpx;
+	padding: 10rpx 0;
 	line-height: 80rpx;
 	background-color: #2196F3;
 	color: white;
 	border-radius: 40rpx;
 	font-size: 28rpx;
+	box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+.btn-shuffle-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
+.ads-tag {
+	position: absolute;
+	top: -10rpx;
+	right: -10rpx;
+	background-color: #FF5722;
+	color: white;
+	font-size: 20rpx;
+	padding: 4rpx 8rpx;
+	border-radius: 8rpx;
+	font-weight: bold;
 	box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 </style>

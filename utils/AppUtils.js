@@ -33,7 +33,7 @@ class AppUtils {
 	/**
 	 * 视频激励广告
 	 */
-	static showRewards(callback) {
+	static showRewards(callback, failedCallback) {
 		if (!isAndroid) {
 			// 回调
 			callback(true);
@@ -47,6 +47,10 @@ class AppUtils {
 			if (callback) {
 				testModule.printLog(JSON.stringify(res) + "|" + suc);
 				callback(suc);
+			} else {
+				if (failedCallback) {
+					failedCallback()
+				}
 			}
 		})
 	}
