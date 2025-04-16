@@ -10,6 +10,8 @@
 			<view class="button-area">
 				<button class="btn btn-start" @tap="selectLevel">选择关卡</button>
 				<button class="btn btn-about" @tap="showAbout">关于游戏</button>
+				<button class="btn btn-video" @tap="watchVideoAd" v-if="showAds">看视频免广告24小时</button>
+				<text class="ad-free-countdown" v-else>免广告剩余时间: {{ formatTime(adFreeTime) }}</text>
 			</view>
 		</view>
 		
@@ -36,6 +38,7 @@
 
 <script>
 import GameBoard from '../../components/game/GameBoard.vue';
+import AppUtils from '../../utils/AppUtils.js';
 
 export default {
 	components: {
@@ -43,11 +46,27 @@ export default {
 	},
 	data() {
 		return {
-			currentPage: 'home' // home, game, about
+            AppUtils,
+            showAds: !AppUtils.isAdsDisabled(),
+			currentPage: 'home', // home, game, about
+			adFreeTime: 0, // 免广告剩余时间（秒）
+			timer: null // 倒计时定时器
 		}
 	},
 	onLoad() {
-		//
+		this.updateAdFreeTime();
+		// 启动定时器，每秒更新免广告时间
+		this.timer = setInterval(() => {
+			this.updateAdFreeTime();
+		}, 1000);
+	},
+
+	onUnload() {
+		// 清除定时器
+		if (this.timer) {
+			clearInterval(this.timer);
+			this.timer = null;
+		}
 	},
 	methods: {
 		selectLevel() {
@@ -63,6 +82,38 @@ export default {
 		},
 		goHome() {
 			this.currentPage = 'home';
+		},
+
+		// 更新免广告时间
+		updateAdFreeTime() {
+            this.showAds = !AppUtils.isAdsDisabled();
+			this.adFreeTime = AppUtils.isAdsDisabled() ? AppUtils.getAdFreeTime() : 0;
+		},
+
+		// 格式化时间
+		formatTime(seconds) {
+			const hours = Math.floor(seconds / 3600);
+			const minutes = Math.floor((seconds % 3600) / 60);
+			const remainingSeconds = seconds % 60;
+			return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+		},
+
+		// 观看视频广告
+		watchVideoAd() {
+			AppUtils.autoCloseAds((success) => {
+				if (success) {
+					uni.showToast({
+						title: '获得24小时免广告特权',
+						icon: 'success'
+					});
+					this.updateAdFreeTime();
+				} else {
+					uni.showToast({
+						title: '观看完整视频才能获得奖励',
+						icon: 'none'
+					});
+				}
+			});
 		}
 	}
 }</script>
@@ -168,5 +219,17 @@ export default {
 
 .btn-back {
     margin-top: 40rpx;
+}
+
+.btn-video {
+    background-color: #FF9800;
+    background-image: linear-gradient(to bottom right, #FFA726, #FF9800);
+}
+
+.ad-free-countdown {
+    font-size: 28rpx;
+    color: #4CAF50;
+    text-align: center;
+    margin-top: 20rpx;
 }
 </style>

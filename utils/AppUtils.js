@@ -63,6 +63,7 @@ class AppUtils {
 	 */
 	static autoCloseAds(callback) {
 		if (!isAndroid) {
+			callback(true);
 			return;
 		}
 
@@ -89,6 +90,17 @@ class AppUtils {
 			return Date.now() < disabledUntil;
 		} catch (e) {
 			return false;
+		}
+	}
+
+	static getAdFreeTime() {
+		try {
+			const disabledUntil = uni.getStorageSync(ADS_DISABLED_KEY);
+			if (!disabledUntil) return 0;
+			const remainingTime = disabledUntil - Date.now();
+			return remainingTime > 0 ? Math.floor(remainingTime / 1000) : 0;
+		} catch (e) {
+			return 0;
 		}
 	}
 }
