@@ -10,8 +10,10 @@
 			<view class="button-area">
 				<button class="btn btn-start" @tap="selectLevel">选择关卡</button>
 				<button class="btn btn-about" @tap="showAbout">关于游戏</button>
+                <!-- #ifdef APP-PLUS -->
 				<button class="btn btn-video" @tap="watchVideoAd" v-if="showAds">看视频免广告24小时</button>
 				<text class="ad-free-countdown" v-else>免广告剩余时间: {{ formatTime(adFreeTime) }}</text>
+                <!-- #endif -->
 			</view>
 		</view>
 		
