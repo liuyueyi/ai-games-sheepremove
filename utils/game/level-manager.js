@@ -4,6 +4,12 @@
  */
 
 import { getDifficultyConfig } from './difficulties.js';
+import LEVELS from '/static/level/levels.json';
+
+/**
+ * 加载关卡配置
+ * @param {Number} difficultyId 难度ID
+ * @param {Number} levelNumber 关卡编号
 
 /**
  * 加载关卡配置
@@ -11,22 +17,23 @@ import { getDifficultyConfig } from './difficulties.js';
  * @param {Number} levelNumber 关卡编号
  * @returns {Promise<Object>} 关卡配置对象
  */
-export async function loadLevelConfig(difficultyId, levelNumber) {
+export function loadLevelConfig(difficultyId, levelNumber) {
   try {
     // 获取难度配置
     const difficultyConfig = getDifficultyConfig(difficultyId);
     console.log('难度配置:', difficultyConfig); // 添加此行以打印难度配置
-    
+
     // 检查关卡编号是否有效
     if (levelNumber < 1 || levelNumber > difficultyConfig.levelCount) {
       console.error(`关卡编号无效: ${levelNumber}, 难度 ${difficultyId} 的最大关卡数为 ${difficultyConfig.levelCount}`);
       // 默认返回第一关
       levelNumber = 1;
     }
-    
-    // 动态导入关卡配置文件
-    const levelModule = await import(`../../static/level/difficulty_${difficultyId}_level_${levelNumber}.js`);
-    return levelModule.default;
+
+    // 根据难度和关卡编号生成配置
+    const levelInfo =  LEVELS[difficultyId + ""][levelNumber - 1];
+    console.log('关卡信息:', levelInfo); // 添加此行以打印关卡信息
+    return levelInfo;
   } catch (error) {
     console.error('加载关卡配置失败:', error);
     // 返回一个默认配置
@@ -52,7 +59,7 @@ export async function loadLevelConfig(difficultyId, levelNumber) {
  */
 export function getNextLevel(difficultyId, currentLevelNumber) {
   const difficultyConfig = getDifficultyConfig(difficultyId);
-  
+
   // 如果当前关卡不是该难度的最后一关，返回下一关
   if (currentLevelNumber < difficultyConfig.levelCount) {
     return {
@@ -60,11 +67,11 @@ export function getNextLevel(difficultyId, currentLevelNumber) {
       levelNumber: currentLevelNumber + 1
     };
   }
-  
+
   // 如果是该难度的最后一关，尝试进入下一个难度的第一关
   const nextDifficultyId = difficultyId + 1;
   const nextDifficultyConfig = getDifficultyConfig(nextDifficultyId);
-  
+
   // 如果存在下一个难度，返回下一个难度的第一关
   if (nextDifficultyConfig && nextDifficultyConfig.id === nextDifficultyId) {
     return {
@@ -72,7 +79,7 @@ export function getNextLevel(difficultyId, currentLevelNumber) {
       levelNumber: 1
     };
   }
-  
+
   // 如果没有下一个难度，返回当前难度的最后一关（表示已经通关全部关卡）
   return {
     difficultyId,
@@ -101,6 +108,6 @@ export function generateLevelCards(levelConfig) {
       });
     }
   });
-  
+
   return cards;
 }

@@ -178,7 +178,7 @@ export default {
 
 			// 生成关卡卡片
 			const cards = generateLevelCards(this.levelInfo);
-			console.log('关卡配置:', this.levelInfo, cards);
+			// console.log('关卡配置:', this.levelInfo, cards);
 
 
 			// 获取游戏区域的实际尺寸
@@ -210,7 +210,7 @@ export default {
 
 					// 生成布局
 					this.gameCards = generateLayout(cards, updatedConfig);
-					console.log('1关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
+					// console.log('1关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
 				} else {
 					// 如果无法获取到元素尺寸，使用屏幕尺寸估算
 					containerWidth = Math.floor(uni.getSystemInfoSync().windowWidth);
@@ -227,7 +227,7 @@ export default {
 
 					// 生成布局
 					this.gameCards = generateLayout(cards, updatedConfig);
-					console.log('2关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
+					// console.log('2关卡' + JSON.stringify(this.levelInfo) + '生成的卡片数据效果', this.gameCards);
 				}
 			}).exec();
 

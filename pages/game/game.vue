@@ -13,6 +13,7 @@
 <script>
 import GameBoard from '../../components/game/GameBoard.vue';
 import GameDataUtils from '../../utils/GameDataUtils.js';
+import { getNextLevel } from '../../utils/game/level-manager.js';
 
 export default {
 	components: {
@@ -73,18 +74,14 @@ export default {
 			this.saveGameResult(result);
 			console.log('onLevelComplete', result);
 			
-			// 导入关卡管理器
-			import('../../utils/game/level-manager.js').then(module => {
-				const { getNextLevel } = module;
-				
-				// 获取下一关信息
-				const nextLevel = getNextLevel(this.difficultyId, this.levelNumber);
-				
-				// 如果有下一关，更新难度和关卡编号
-				if (nextLevel.difficultyId !== this.difficultyId || nextLevel.levelNumber !== this.levelNumber) {
-					// 更新当前难度和关卡编号
-					this.difficultyId = nextLevel.difficultyId;
-					this.levelNumber = nextLevel.levelNumber;
+			// 获取下一关信息
+			const nextLevel = getNextLevel(this.difficultyId, this.levelNumber);
+			
+			// 如果有下一关，更新难度和关卡编号
+			if (nextLevel.difficultyId !== this.difficultyId || nextLevel.levelNumber !== this.levelNumber) {
+				// 更新当前难度和关卡编号
+				this.difficultyId = nextLevel.difficultyId;
+				this.levelNumber = nextLevel.levelNumber;
 					
 					// // 显示下一关提示
 					// uni.showToast({
@@ -100,7 +97,6 @@ export default {
 						duration: 2000
 					});
 				}
-			});
 		}
 	}
 };

@@ -1,4 +1,5 @@
 import os
+import json
 
 def generate_level_file(difficulty, level):
     # 根据难度和关卡计算参数
@@ -8,8 +9,8 @@ def generate_level_file(difficulty, level):
     max_slots = min(7 + (level - 1) // 20, 10)  # 每20关增加一个槽位
     
     # 根据难度和关卡动态设置网格大小
-    base_rows = 4 + (level - 1) // 30  # 每30关增加一行
-    base_cols = 6 + (level - 1) // 25  # 每25关增加一列
+    base_rows = 6 + (level - 1) // 30  # 每30关增加一行
+    base_cols = 4 + (level - 1) // 25  # 每25关增加一列
     
     # 根据难度调整基础网格大小
     grid_rows = min(base_rows + (difficulty - 1) // 2, 6)  # 最多6行
@@ -41,32 +42,48 @@ def generate_level_file(difficulty, level):
         5: '大师级'
     }
     
-    content = f'''/**
- * 难度{difficulty}-关卡{level}配置
- */
-
-import {{ CARD_TYPES }} from '../game/cards.js';
-
-export default {{
-  id: {level},
-  name: '{difficulty_names[difficulty]}-第{level}关',
-  description: '挑战第{level}关，考验你的技巧',
-  cardTypes: CARD_TYPES.slice(0, {card_types}), // 使用前{card_types}种类型的卡片
-  cardsPerType: {cards_per_type},
-  maxSlots: {max_slots},
-  timeLimit: {time_limit},
-  maxLayers: {max_layers},
-  gridRows: {grid_rows},
-  gridCols: {grid_cols},
-  difficulty: {difficulty}
-}};
-'''
+    # 生成卡片类型数组
+    CARD_TYPES = [
+        { 'id': 1, 'name': '塑料瓶', 'icon': '🥤' },
+        { 'id': 2, 'name': '纸箱', 'icon': '📦' },
+        { 'id': 3, 'name': '电池', 'icon': '🔋' },
+        { 'id': 4, 'name': '垃圾桶', 'icon': '🗑️' },
+        { 'id': 5, 'name': '报纸', 'icon': '📰' },
+        { 'id': 6, 'name': '购物袋', 'icon': '🛍️' },
+        { 'id': 7, 'name': '罐头', 'icon': '🥫' },
+        { 'id': 8, 'name': '药品', 'icon': '💊' },
+        { 'id': 9, 'name': '玻璃瓶', 'icon': '🍾' },
+        { 'id': 10, 'name': '食物残渣', 'icon': '🍖' },
+        { 'id': 11, 'name': '旧衣物', 'icon': '👕' },
+        { 'id': 12, 'name': '废纸', 'icon': '📄' },
+    ]
+    card_types_array = [card for card in CARD_TYPES[:card_types]]
     
-    file_path = f'difficulty_{difficulty}_level_{level}.js'
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(content)
+    return {
+        "id": level,
+        "name": f"{difficulty_names[difficulty]}-第{level}关",
+        "description": f"挑战第{level}关，考验你的技巧",
+        "cardTypes": card_types_array,
+        "cardsPerType": cards_per_type,
+        "maxSlots": max_slots,
+        "timeLimit": time_limit,
+        "maxLayers": max_layers,
+        "gridRows": grid_rows,
+        "gridCols": grid_cols,
+        "difficulty": difficulty
+    }
 
-# 为每个难度生成100个关卡
+# 生成所有关卡配置
+all_levels = {}
 for difficulty in range(1, 6):
+    all_levels[difficulty] = []
     for level in range(1, 101):
-        generate_level_file(difficulty, level)
+        level_config = generate_level_file(difficulty, level)
+        all_levels[difficulty].append(level_config)
+
+# 将所有关卡配置保存到一个JSON文件中
+output_dir = os.path.dirname(os.path.abspath(__file__))
+output_file = os.path.join(output_dir, 'levels.json')
+
+with open(output_file, 'w', encoding='utf-8') as f:
+    json.dump(all_levels, f, ensure_ascii=False, indent=2)
